@@ -21,15 +21,15 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Log in to ECR
+      - name: Login to ECR
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 533267036595.dkr.ecr.us-east-1.amazonaws.com
 
-      - name: Pull upstream image
+      - name: Pull upstream Minecraft image
         run: |
           docker pull itzg/minecraft-server:java21
 
-      - name: Smoke test image
+      - name: Smoke test container
         run: |
           docker run -d --name mc-smoke \
             -e EULA=TRUE \
@@ -38,13 +38,15 @@ jobs:
             itzg/minecraft-server:java21
 
           sleep 60
+
           docker logs mc-smoke
+
           docker logs mc-smoke | grep "Starting minecraft server version 1.21.1"
 
           docker stop mc-smoke
           docker rm mc-smoke
 
-      - name: Tag image for ECR
+      - name: Tag image
         run: |
           docker tag itzg/minecraft-server:java21 533267036595.dkr.ecr.us-east-1.amazonaws.com/ops3-minecraft:${GITHUB_REF_NAME}
 
